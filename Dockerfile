@@ -1,10 +1,11 @@
 # Etapa 1: Instalar dependencias del sistema y de Python
 FROM python:3.11
 
-# Instala las herramientas de construcción esenciales de Linux
+# Instala las herramientas de construcción esenciales de Linux y git
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
-    gcc
+    gcc \
+    git
 
 # Establecer el directorio de trabajo
 WORKDIR /app
