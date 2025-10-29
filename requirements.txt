@@ -14,5 +14,5 @@ httpx
 python-jose[cryptography]
 passlib
 argon2-cffi
-pandas-ta
+pandas-ta==0.3.14b0
 redis
