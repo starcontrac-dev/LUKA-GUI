@@ -14,5 +14,6 @@ httpx==0.27.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 argon2-cffi==23.1.0
-git+https://github.com/twopirllc/pandas-ta.git@0.12.0b0
+pandas-ta==0.12.0
 redis==5.0.7
+setuptools==69.5.1
