@@ -1,16 +1,25 @@
-# Usar una imagen oficial de Python como base
+# Etapa 1: Instalar dependencias del sistema y de Python
 FROM python:3.11
 
-# Establecer el directorio de trabajo dentro del contenedor
+# Instala las herramientas de construcción esenciales de Linux
+# Esto es clave para compilar paquetes complejos como los de data science
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc
+
+# Establecer el directorio de trabajo
 WORKDIR /app
 
-# Copiar el archivo de dependencias
+# Actualizar pip a la última versión
+RUN pip install --no-cache-dir --upgrade pip
+
+# Copiar solo el archivo de requerimientos para aprovechar el cache de Docker
 COPY requirements.txt .
 
-# Instalar las dependencias
+# Instalar las dependencias de Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copiar todo el código de la aplicación
+# Copiar el resto del código de la aplicación
 COPY . .
 
 # Exponer el puerto en el que corre la aplicación
