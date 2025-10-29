@@ -1,23 +1,19 @@
-# Etapa 1: Instalar dependencias del sistema y de Python
-FROM python:3.11
+# Usar una imagen base de Micromamba (optimizada para ciencia de datos)
+FROM mambaorg/micromamba:1.5.8
 
-# Instala las herramientas de construcción esenciales de Linux y git
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    gcc \
-    git
+# Instalar git (necesario si alguna dependencia se instala desde GitHub)
+RUN apt-get update && apt-get install -y --no-install-recommends git
 
 # Establecer el directorio de trabajo
 WORKDIR /app
 
-# Actualizar pip a la última versión
-RUN pip install --no-cache-dir --upgrade pip
-
 # Copiar solo el archivo de requerimientos para aprovechar el cache de Docker
 COPY requirements.txt .
 
-# Instalar las dependencias de Python
-RUN pip install --no-cache-dir -r requirements.txt
+# Instalar las dependencias de Python usando pip (Micromamba ya incluye pip)
+# Micromamba gestiona el entorno, así que pip funcionará correctamente aquí.
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
 
 # Copiar el resto del código de la aplicación
 COPY . .
