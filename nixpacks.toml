@@ -1,0 +1,7 @@
+# Configuración para que Nixpacks instale Python y Pip
+[phases.setup]
+nixPkgs = ["python311", "python311Packages.pip"]
+
+# Comando para instalar las dependencias de Python
+[phases.install]
+cmds = ["python -m pip install --no-cache-dir -r requirements.txt"]
