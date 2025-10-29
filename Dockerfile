@@ -4,9 +4,10 @@ FROM mambaorg/micromamba:1.5.8
 # Cambiar a usuario root para la instalación de paquetes del sistema y micromamba
 USER root
 
-# Instalar git usando micromamba
-# Esto es necesario si alguna dependencia de pip necesita git para clonar repositorios
-RUN micromamba install -y git
+# Crear un entorno base con micromamba e instalar git
+# Esto asegura que micromamba tenga un prefijo de destino y que git esté disponible
+RUN micromamba create -n base python=3.11 git -y && \
+    micromamba activate base
 
 # Establecer el directorio de trabajo
 WORKDIR /app
@@ -14,9 +15,10 @@ WORKDIR /app
 # Copiar solo el archivo de requerimientos para aprovechar el cache de Docker
 COPY requirements.txt .
 
-# Instalar las dependencias de Python usando pip (Micromamba ya incluye pip)
-# Aseguramos que pip esté en el PATH correcto después de la inicialización de micromamba
-RUN pip install --no-cache-dir --upgrade pip && \
+# Activar el entorno base y luego instalar las dependencias de Python usando pip
+# Aseguramos que pip esté en el PATH correcto después de la activación del entorno
+RUN micromamba activate base && \
+    pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copiar el resto del código de la aplicación
@@ -29,4 +31,5 @@ EXPOSE 8000
 USER micromamba
 
 # El comando para iniciar la aplicación con Gunicorn
-CMD ["gunicorn", "main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+# Aseguramos que el entorno base esté activado al iniciar la app
+CMD micromamba activate base && gunicorn main:app --workers 4 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
