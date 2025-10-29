@@ -4,14 +4,18 @@ FROM mambaorg/micromamba:1.5.8
 # Cambiar a usuario root para la instalación de paquetes del sistema y micromamba
 USER root
 
-# Instalar git y las dependencias de Python directamente en el entorno base existente
-# Usamos el canal conda-forge para asegurar la disponibilidad de paquetes de ciencia de datos
-RUN micromamba install -n base -c conda-forge git python=3.11 pip -y && \
-    pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Crear un entorno base con micromamba e instalar git y python
+RUN micromamba create -n base python=3.11 git pip -y -c conda-forge
 
 # Establecer el directorio de trabajo
 WORKDIR /app
+
+# Copiar solo el archivo de requerimientos para aprovechar el cache de Docker
+COPY requirements.txt .
+
+# Instalar las dependencias de Python usando pip dentro del entorno base
+RUN micromamba run -n base pip install --no-cache-dir --upgrade pip && \
+    micromamba run -n base pip install --no-cache-dir -r requirements.txt
 
 # Copiar el resto del código de la aplicación
 COPY . .
