@@ -2,7 +2,6 @@
 FROM python:3.11
 
 # Instala las herramientas de construcción esenciales de Linux
-# Esto es clave para compilar paquetes complejos como los de data science
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     gcc
@@ -25,5 +24,5 @@ COPY . .
 # Exponer el puerto en el que corre la aplicación
 EXPOSE 8000
 
-# El comando para iniciar la aplicación
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# El comando para iniciar la aplicación con Gunicorn
+CMD ["gunicorn", "main:app", "--workers", "4", "--worker-class", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
