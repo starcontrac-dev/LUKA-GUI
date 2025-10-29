@@ -1,9 +1,10 @@
 # Usar una imagen base de Micromamba (optimizada para ciencia de datos)
 FROM mambaorg/micromamba:1.5.8
 
-# Instalar git usando mamba (gestor de paquetes de micromamba)
-# Esto es necesario si alguna dependencia de pip necesita git para clonar repositorios
-RUN mamba install -y git
+# Inicializar micromamba y luego instalar git
+# Esto es crucial para que el comando 'micromamba' esté disponible
+RUN micromamba shell init -s bash -p /usr/local/bin/micromamba && \
+    bash -c "source /usr/local/bin/micromamba/etc/profile.d/micromamba.sh && micromamba install -y git"
 
 # Establecer el directorio de trabajo
 WORKDIR /app
@@ -12,9 +13,10 @@ WORKDIR /app
 COPY requirements.txt .
 
 # Instalar las dependencias de Python usando pip (Micromamba ya incluye pip)
-# Micromamba gestiona el entorno, así que pip funcionará correctamente aquí.
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Aseguramos que pip esté en el PATH correcto después de la inicialización de micromamba
+RUN bash -c "source /usr/local/bin/micromamba/etc/profile.d/micromamba.sh && \
+    pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt"
 
 # Copiar el resto del código de la aplicación
 COPY . .
