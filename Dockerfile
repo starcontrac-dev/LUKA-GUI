@@ -1,8 +1,9 @@
 # Usar una imagen base de Micromamba (optimizada para ciencia de datos)
 FROM mambaorg/micromamba:1.5.8
 
-# Instalar git (necesario si alguna dependencia se instala desde GitHub)
-RUN apt-get update && apt-get install -y --no-install-recommends git
+# Instalar git usando mamba (gestor de paquetes de micromamba)
+# Esto es necesario si alguna dependencia de pip necesita git para clonar repositorios
+RUN mamba install -y git
 
 # Establecer el directorio de trabajo
 WORKDIR /app
