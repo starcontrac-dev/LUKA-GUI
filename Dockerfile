@@ -14,8 +14,8 @@ WORKDIR /app
 # Copiar solo el archivo de requerimientos para aprovechar el cache de Docker
 COPY requirements.txt .
 
-# Instalar las dependencias de Python usando pip
-# Micromamba ya gestiona el entorno, así que pip funcionará correctamente aquí.
+# Instalar las dependencias de Python usando pip (Micromamba ya incluye pip)
+# Aseguramos que pip esté en el PATH correcto después de la inicialización de micromamba
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
