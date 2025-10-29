@@ -1,0 +1,18 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chart Test</title>
+    <script src="/static/lightweight-charts.standalone.production.js"></script>
+</head>
+<body>
+    <div id="chart" style="width: 600px; height: 400px;"></div>
+    <script>
+        const chart = LightweightCharts.createChart(document.getElementById('chart'));
+        const candlestickSeries = chart.addCandlestickSeries();
+        candlestickSeries.setData([
+            { time: '2018-12-22', open: 32.51, high: 32.51, low: 32.51, close: 32.51 },
+        ]);
+    </script>
+</body>
+</html>

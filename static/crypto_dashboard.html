@@ -1,0 +1,1228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STAR Dashboard - Cyberpunk Terminal</title>
+    <!-- SCRIPT DEL WIDGET DE TRADINGVIEW -->
+    <script type="text/javascript" src="https://s3.tradingview.com/tv.js"></script>
+    <!-- SCRIPT PARA EL GRÁFICO DE RESPALDO -->
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-charts@4.1.0/dist/lightweight-charts.standalone.production.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* === VARIABLES CSS === */
+        :root {
+            --primary-bg: #0a0a0a;
+            --secondary-bg: #1a1a1a;
+            --accent-bg: #2a2a2a;
+            --neon-cyan: #00ffff;
+            --neon-pink: #ff00ff;
+            --neon-green: #00ff00;
+            --neon-orange: #ff6600;
+            --neon-purple: #9d00ff;
+            --text-primary: #ffffff;
+            --text-secondary: #cccccc;
+            --text-muted: #888888;
+            --border-color: #333333;
+            --success: #00ff88;
+            --warning: #ffaa00;
+            --danger: #ff4444;
+            --matrix-green: #00ff41;
+        }
+
+        /* === RESET Y BASE === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Rajdhani', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* === MATRIX BACKGROUND === */
+        #matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.1;
+        }
+
+        /* === HEADER === */
+        .header {
+            background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--accent-bg) 100%);
+            border-bottom: 2px solid var(--neon-cyan);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 1rem; /* Reducido para móviles */
+        }
+
+        .logo {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem; /* Ajustado para móviles */
+            font-weight: 900;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+            animation: pulse 2s infinite;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem; /* Reducido */
+            list-style: none;
+            background: transparent;
+            transition: all 0.3s ease-in-out;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 0.5rem;
+        }
+
+        .nav-links a:hover {
+            color: var(--neon-cyan);
+            text-shadow: 0 0 10px var(--neon-cyan);
+        }
+        
+        .hamburger-btn {
+            display: none; /* Oculto por defecto */
+            background: none;
+            border: none;
+            color: var(--neon-cyan);
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        /* === MAIN CONTAINER === */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem; /* Reducido */
+            position: relative;
+            z-index: 1;
+        }
+
+        /* === SEARCH SECTION === */
+        .search-section {
+            background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--accent-bg) 100%);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 255, 255, 0.1);
+        }
+
+        .search-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: var(--neon-cyan);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-shadow: 0 0 15px var(--neon-cyan);
+        }
+
+        .search-form {
+            display: grid;
+            grid-template-columns: 1fr; /* Stack por defecto */
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-input, .form-select {
+            background: var(--primary-bg);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: var(--text-primary);
+            font-family: inherit;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--neon-cyan) 0%, var(--neon-purple) 100%);
+            border: none;
+            border-radius: 8px;
+            padding: 0.75rem 1.5rem;
+            color: var(--primary-bg);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 255, 255, 0.4);
+        }
+        
+        .btn-secondary {
+            background: var(--accent-bg);
+            border: 1px solid var(--neon-cyan);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            color: var(--neon-cyan);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-secondary:hover {
+            background: var(--neon-cyan);
+            color: var(--primary-bg);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+        }
+
+
+        /* === DASHBOARD GRID & TOKEN GRID === */
+        .dashboard-grid, .token-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Stack por defecto */
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-card, .token-card {
+            background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--accent-bg) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .token-card {
+             background: var(--primary-bg);
+        }
+
+        .dashboard-card:hover, .token-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 255, 255, 0.2);
+            border-color: var(--neon-cyan);
+        }
+        
+        .gem-card {
+            cursor: pointer;
+        }
+
+        .gem-card:hover {
+            border-color: var(--neon-green) !important; /* Usar !important para anular el hover genérico */
+            box-shadow: 0 8px 32px rgba(0, 255, 0, 0.25) !important;
+        }
+
+        .card-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.3rem;
+            color: var(--neon-cyan);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* === RESULTS SECTION === */
+        .results-section {
+            background: linear-gradient(135deg, var(--secondary-bg) 0%, var(--accent-bg) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .results-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            color: var(--neon-green);
+            margin-bottom: 1.5rem;
+            text-align: center;
+            text-shadow: 0 0 15px var(--neon-green);
+        }
+
+        .token-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .token-symbol {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--neon-cyan);
+        }
+
+        .token-chain {
+            background: var(--neon-purple);
+            color: var(--primary-bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .token-metrics {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .metric {
+            text-align: center;
+        }
+
+        .metric-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .positive { color: var(--success); }
+        .negative { color: var(--danger); }
+
+        /* === LOADING SPINNER === */
+        .loading { display: flex; justify-content: center; align-items: center; padding: 3rem; }
+        .spinner { width: 50px; height: 50px; border: 3px solid var(--border-color); border-top: 3px solid var(--neon-cyan); border-radius: 50%; animation: spin 1s linear infinite; }
+
+        /* === ANIMATIONS === */
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* === UTILITY & OTHER CLASSES === */
+        .hidden { display: none !important; }
+        .text-center { text-align: center; }
+        .mt-2 { margin-top: 1rem; }
+        .signal-buy { color: var(--success); font-weight: bold; }
+        .signal-sell { color: var(--danger); font-weight: bold; }
+        .signal-hold { color: var(--warning); font-weight: bold; }
+        .prediction-card { background: linear-gradient(135deg, var(--accent-bg) 0%, var(--secondary-bg) 100%); border: 1px solid var(--neon-purple); border-radius: 12px; padding: 1.5rem; margin-top: 1rem; }
+        .prediction-title { color: var(--neon-purple); font-family: 'Orbitron', monospace; margin-bottom: 1rem; }
+        .prediction-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
+        .error-message { background: rgba(255, 68, 68, 0.1); border: 1px solid var(--danger); border-radius: 8px; padding: 1rem; color: var(--danger); text-align: center; margin: 1rem 0; }
+        .copy-btn { background: none; border: none; color: var(--neon-cyan); cursor: pointer; margin-left: 0.5rem; font-size: 0.9rem; transition: color 0.2s; }
+        .copy-btn:hover { color: var(--neon-green); }
+
+        /* === MEDIA QUERIES PARA RESPONSIVE DESIGN === */
+        
+        /* Tablet y pantallas pequeñas (a partir de 600px) */
+        @media (min-width: 600px) {
+            .search-form {
+                grid-template-columns: 1fr 1fr auto;
+            }
+            .btn-primary {
+                width: auto;
+            }
+            .dashboard-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Desktop (a partir de 992px) */
+        @media (min-width: 992px) {
+            .nav-container {
+                padding: 0 2rem;
+            }
+            .logo {
+                font-size: 2rem;
+            }
+            .main-container {
+                padding: 2rem;
+            }
+            .search-title, .results-title {
+                font-size: 1.8rem;
+            }
+            .dashboard-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            .token-grid {
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            }
+        }
+
+        /* Control del menú hamburguesa (hasta 991px) */
+        @media (max-width: 991px) {
+            .hamburger-btn {
+                display: block;
+            }
+            .nav-links {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: var(--secondary-bg);
+                flex-direction: column;
+                padding: 1rem 0;
+                border-top: 1px solid var(--neon-cyan);
+            }
+            .nav-links.active {
+                display: flex;
+            }
+            .nav-links li {
+                text-align: center;
+                width: 100%;
+            }
+            .nav-links a {
+                display: block;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Matrix Background Canvas -->
+    <canvas id="matrix-bg"></canvas>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo">STAR-CONTRACT</div>
+            <nav>
+                <ul class="nav-links" id="nav-links">
+                    <li><a href="#search"><i class="fas fa-search"></i> Buscar</a></li>
+                    <li><a href="#analyze"><i class="fas fa-chart-line"></i> Analizar</a></li>
+                    <li><a href="#discover"><i class="fas fa-gem"></i> Descubrir</a></li>
+                    <li><a href="#predict"><i class="fas fa-crystal-ball"></i> Predecir</a></li>
+                    <li><a href="/ia-chat" target="_blank"><i class="fas fa-robot"></i> IA</a></li>
+                </ul>
+            </nav>
+            <button id="hamburger-btn" class="hamburger-btn"><i class="fas fa-bars"></i></button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Search Section -->
+        <section id="search" class="search-section">
+            <h2 class="search-title"><i class="fas fa-search"></i> BÚSQUEDA DE TOKENS</h2>
+            <form class="search-form" id="searchForm">
+                <div class="form-group">
+                    <label for="tokenAddress">Dirección del Token/Pool</label>
+                    <input type="text" id="tokenAddress" class="form-input" placeholder="0x..." required>
+                </div>
+                <div class="form-group">
+                    <label for="network">Red</label>
+                    <select id="network" class="form-select" required>
+                        <option value="ethereum">Ethereum</option>
+                        <option value="bsc">Binance Smart Chain</option>
+                        <option value="polygon">Polygon</option>
+                        <option value="arbitrum">Arbitrum</option>
+                        <option value="optimism">Optimism</option>
+                        <option value="base">Base</option>
+                        <option value="avalanche">Avalanche</option>
+                        <option value="solana">Solana</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">
+                    <i class="fas fa-rocket"></i> ANALIZAR
+                </button>
+            </form>
+        </section>
+
+        <!-- Dashboard Grid -->
+        <div class="dashboard-grid">
+            <div class="dashboard-card">
+                <h3 class="card-title"><i class="fas fa-chart-line"></i> Análisis Técnico</h3>
+                <div class="card-content">
+                    <p>Obtén señales de trading basadas en indicadores técnicos avanzados como SMA, ATR y análisis de momentum.</p>
+                    <button id="get-signal-btn" class="btn-primary mt-2" onclick="getTechnicalSignal()">
+                        <i class="fas fa-signal"></i> Obtener Señal
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h3 class="card-title"><i class="fas fa-crystal-ball"></i> Predicciones IA</h3>
+                <div class="card-content">
+                    <p>Predicciones de precio usando modelos XGBoost y simulaciones Monte Carlo para análisis predictivo.</p>
+                    <button id="predict-btn" class="btn-primary mt-2" onclick="getPredictions()">
+                        <i class="fas fa-brain"></i> Predecir Precio
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h3 class="card-title"><i class="fas fa-shield-alt"></i> Análisis de Riesgo</h3>
+                <div class="card-content">
+                    <p>Evaluación comprensiva de riesgos incluyendo liquidez, volatilidad y métricas de seguridad.</p>
+                    <button class="btn-primary mt-2" onclick="getRiskAnalysis()">
+                        <i class="fas fa-exclamation-triangle"></i> Evaluar Riesgo
+                    </button>
+                </div>
+            </div>
+
+            <div class="dashboard-card">
+                <h3 class="card-title"><i class="fas fa-gem"></i> Descubrir Gemas</h3>
+                <div class="card-content">
+                    <p>Encuentra tokens con alto potencial usando algoritmos de descubrimiento y análisis de momentum.</p>
+                    <button id="discover-btn" class="btn-primary mt-2" onclick="discoverGems()">
+                        <i class="fas fa-search-plus"></i> Buscar Gemas
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <section id="results" class="results-section hidden">
+            <h2 class="results-title"><i class="fas fa-chart-bar"></i> RESULTADOS DEL ANÁLISIS</h2>
+            <div id="resultsContent"></div>
+        </section>
+    </div>
+
+    <script>
+        // === MATRIX BACKGROUND EFFECT ===
+        class MatrixBackground {
+            constructor() {
+                this.canvas = document.getElementById('matrix-bg');
+                this.ctx = this.canvas.getContext('2d');
+                this.characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()';
+                this.fontSize = 14;
+                this.columns = 0;
+                this.drops = [];
+                
+                this.init();
+                this.animate();
+            }
+
+            init() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.columns = Math.floor(this.canvas.width / this.fontSize);
+                
+                for (let i = 0; i < this.columns; i++) {
+                    this.drops[i] = Math.random() * this.canvas.height;
+                }
+            }
+
+            animate() {
+                this.ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.ctx.fillStyle = '#00ff41';
+                this.ctx.font = `${this.fontSize}px monospace`;
+                
+                for (let i = 0; i < this.drops.length; i++) {
+                    const char = this.characters[Math.floor(Math.random() * this.characters.length)];
+                    this.ctx.fillText(char, i * this.fontSize, this.drops[i]);
+                    
+                    if (this.drops[i] > this.canvas.height && Math.random() > 0.975) {
+                        this.drops[i] = 0;
+                    }
+                    this.drops[i] += this.fontSize;
+                }
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+
+        // === MAIN APPLICATION CLASS ===
+        class LukaCryptoApp {
+            constructor() {
+                this.baseURL = '/api/luka';
+                this.currentToken = null;
+                this.currentNetwork = null;
+                this.currentPoolData = null;
+                this.chart = null; // Para el gráfico de respaldo
+                this.candlestickSeries = null; // Para el gráfico de respaldo
+                this.markers = []; // Para el gráfico de respaldo
+                
+                this.initEventListeners();
+                this.initMatrixBackground();
+                this.initNetworkDropdown();
+            }
+
+            initMatrixBackground() {
+                new MatrixBackground();
+                
+                window.addEventListener('resize', () => {
+                    const canvas = document.getElementById('matrix-bg');
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                });
+            }
+
+            initEventListeners() {
+                document.getElementById('searchForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.handleSearch();
+                });
+
+                document.querySelectorAll('.nav-links a').forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        const href = link.getAttribute('href');
+                        if (href.startsWith('#')) {
+                            e.preventDefault();
+                            const target = document.querySelector(href);
+                            if (target) {
+                                target.scrollIntoView({ behavior: 'smooth' });
+                            }
+                            if (href === '#analyze') {
+                                const signalBtn = document.getElementById('get-signal-btn') || document.querySelector('button[onclick="getTechnicalSignal()"]');
+                                if (signalBtn) {
+                                    setTimeout(() => signalBtn.click(), 200);
+                                }
+                            }
+                        }
+                    });
+                });
+                
+                const hamburger = document.getElementById('hamburger-btn');
+                const navLinks = document.getElementById('nav-links');
+                hamburger.addEventListener('click', () => {
+                    navLinks.classList.toggle('active');
+                });
+            }
+
+            async initNetworkDropdown() {
+                try {
+                    const networks = await this.apiRequest('/networks');
+                    const networkSelect = document.getElementById('network');
+                    networkSelect.innerHTML = ''; 
+
+                    const priorityNetworks = ['eth', 'bsc', 'polygon_pos', 'arbitrum', 'optimism', 'base', 'avax', 'solana'];
+                    
+                    const sortedNetworks = networks.sort((a, b) => {
+                        const aPrio = priorityNetworks.indexOf(a.id);
+                        const bPrio = priorityNetworks.indexOf(b.id);
+
+                        if (aPrio > -1 && bPrio > -1) return aPrio - bPrio;
+                        if (aPrio > -1) return -1;
+                        if (bPrio > -1) return 1;
+                        return a.name.localeCompare(b.name);
+                    });
+
+                    sortedNetworks.forEach(network => {
+                        const option = document.createElement('option');
+                        option.value = network.id;
+                        option.textContent = network.name;
+                        if (network.id === 'eth') {
+                            option.selected = true;
+                        }
+                        networkSelect.appendChild(option);
+                    });
+
+                } catch (error) {
+                    console.error('Fallo al cargar las redes:', error);
+                }
+            }
+
+            async apiRequest(endpoint) {
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    console.error('No authentication token found. API requests will fail.');
+                    throw new Error('No autenticado. Por favor, inicie sesión.');
+                }
+
+                const headers = { 'Authorization': `Bearer ${token}` };
+
+                const response = await fetch(`${this.baseURL}${endpoint}`, { headers });
+                if (!response.ok) {
+                    if (response.status === 401) localStorage.removeItem('access_token');
+                    const errorData = await response.json().catch(() => ({ detail: `Error del servidor: ${response.statusText}` }));
+                    throw new Error(errorData.detail || `HTTP ${response.status}: ${response.statusText}`);
+                }
+                return await response.json();
+            }
+
+            async handleSearch() {
+                const tokenAddress = document.getElementById('tokenAddress').value.trim();
+                const network = document.getElementById('network').value;
+
+                if (!tokenAddress) {
+                    this.showError('Por favor ingresa una dirección de token válida');
+                    return;
+                }
+
+                this.currentToken = tokenAddress;
+                this.currentNetwork = network;
+                this.markers = [];
+                if (this.chart) {
+                    this.chart.remove();
+                    this.chart = null;
+                }
+               
+                this.showLoading();
+                
+                try {
+                    const poolData = await this.apiRequest(`/pool/${network}/${tokenAddress}`);
+                    this.currentPoolData = poolData;
+                    this.displayPoolResults(poolData);
+                } catch (error) {
+                    this.showError(`Error al obtener datos: ${error.message}`);
+                }
+            }
+            
+            displayPoolResults(poolData) {
+                const resultsSection = document.getElementById('results');
+                const resultsContent = document.getElementById('resultsContent');
+                
+                const attributes = poolData.attributes;
+                const priceUSD = parseFloat(attributes.base_token_price_usd);
+                const volume24h = parseFloat(attributes.volume_usd.h24 || 0);
+                const priceChange24h = parseFloat(attributes.price_change_percentage.h24 || 0);
+
+                resultsContent.innerHTML = `
+                    <div id="chart-wrapper">
+                        <div id="chart-container" style="width: 100%; height: 550px; margin-bottom: 1rem;"></div>
+                        <div id="chart-toggle-buttons" class="text-center" style="margin-bottom: 1.5rem;"></div>
+                    </div>
+                    <div class="token-grid">
+                        <div class="token-card">
+                            <div class="token-header">
+                                <div class="token-symbol">${attributes.name}</div>
+                                <div class="token-chain">${this.currentNetwork.toUpperCase()}</div>
+                            </div>
+                            <div class="token-metrics">
+                                <div class="metric">
+                                    <div class="metric-label">Precio USD</div>
+                                    <div class="metric-value">$${this.formatNumber(priceUSD)}</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Volumen 24h</div>
+                                    <div class="metric-value">$${this.formatNumber(volume24h)}</div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Cambio 24h</div>
+                                    <div class="metric-value ${priceChange24h >= 0 ? 'positive' : 'negative'}">
+                                        ${priceChange24h >= 0 ? '+' : ''}${priceChange24h.toFixed(2)}%
+                                    </div>
+                                </div>
+                                <div class="metric">
+                                    <div class="metric-label">Dirección</div>
+                                    <div class="metric-value" style="font-size: 0.8rem; word-break: break-all; display: flex; align-items: center; justify-content: center;">
+                                        <span>${attributes.address}</span>
+                                        <button class="copy-btn" data-address="${attributes.address}" onclick="copyAddress(this, '${attributes.address}')" title="Copiar dirección">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                this.renderTradingViewWidget();
+
+                resultsSection.classList.remove('hidden');
+                resultsSection.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            renderTradingViewWidget() {
+                if (!this.currentPoolData) return;
+
+                const chartContainer = document.getElementById('chart-container');
+                const toggleButtonsContainer = document.getElementById('chart-toggle-buttons');
+                chartContainer.innerHTML = '';
+
+                const { attributes, relationships } = this.currentPoolData;
+                
+                // **FIX**: Safely access nested properties to prevent "reading 'dex'" error.
+                const dexId = (relationships && relationships.dex && relationships.dex.data) ? relationships.dex.data.id : '';
+
+                const dexMap = {
+                    'uniswap': 'UNISWAP',
+                    'pancakeswap': 'PANCAKESWAP',
+                    'trader_joe': 'TRADERJOE',
+                    'quickswap': 'QUICKSWAP',
+                };
+                const exchangeKey = dexId ? Object.keys(dexMap).find(key => dexId.includes(key)) : '';
+                const exchange = exchangeKey ? dexMap[exchangeKey] : '';
+
+                const pairName = attributes.name.replace(/[\s\/]/g, '');
+                
+                const symbolByPair = exchange ? `${exchange}:${pairName}` : pairName;
+                const symbolByAddress = `DEXSCREENER:${this.currentNetwork.toUpperCase()}\\:${this.currentToken}`;
+
+                console.log(`Intentando cargar el símbolo en TradingView por par: ${symbolByPair}`);
+                console.log(`Intentando cargar el símbolo en TradingView por dirección: ${symbolByAddress}`);
+
+                new TradingView.widget({
+                    "autosize": true,
+                    "symbol": symbolByAddress,
+                    "interval": "60",
+                    "timezone": "Etc/UTC",
+                    "theme": "dark",
+                    "style": "1",
+                    "locale": "es",
+                    "toolbar_bg": "#1a1a1a",
+                    "enable_publishing": false,
+                    "allow_symbol_change": true,
+                    "withdateranges": true,
+                    "hide_side_toolbar": false,
+                    "container_id": "chart-container",
+                    "studies": ["MASimple@tv-basicstudies", "Volume@tv-basicstudies"],
+                    "details": true,
+                    "hotlist": true
+                });
+
+                toggleButtonsContainer.innerHTML = `
+                    <button onclick="app.displayOhlcvChart(app.currentNetwork, app.currentToken, '1h')" class="btn-secondary">¿El gráfico no carga? Clic para ver el gráfico básico</button>
+                `;
+            }
+            
+            async displayOhlcvChart(network, poolAddress, timeframe = '1h') {
+                const chartContainer = document.getElementById('chart-container');
+                const toggleButtonsContainer = document.getElementById('chart-toggle-buttons');
+
+                toggleButtonsContainer.innerHTML = `
+                    <button onclick="app.renderTradingViewWidget()" class="btn-secondary">Volver al Gráfico Avanzado (TradingView)</button>
+                `;
+                
+                chartContainer.innerHTML = `
+                    <div class="chart-controls" style="margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <label for="timeframe-select" style="font-weight: 500;">Timeframe:</label>
+                        <select id="timeframe-select" class="form-select" style="width: auto; display: inline-block;">
+                            <option value="15m" ${timeframe === '15m' ? 'selected' : ''}>15m</option>
+                            <option value="1h" ${timeframe === '1h' ? 'selected' : ''}>1h</option>
+                            <option value="4h" ${timeframe === '4h' ? 'selected' : ''}>4h</option>
+                            <option value="1d" ${timeframe === '1d' ? 'selected' : ''}>1d</option>
+                        </select>
+                    </div>
+                    <div id="lightweight-chart-target" style="width: 100%; height: 450px;"></div>
+                `;
+
+                document.getElementById('timeframe-select').addEventListener('change', (e) => {
+                    this.displayOhlcvChart(this.currentNetwork, this.currentToken, e.target.value);
+                });
+                
+                const chartTarget = document.getElementById('lightweight-chart-target');
+                chartTarget.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+
+                try {
+                    const ohlcvData = await this.apiRequest(`/ohlcv/${network}/${poolAddress}?timeframe=${timeframe}&limit=200`);
+                    chartTarget.innerHTML = '';
+
+                    if (this.chart) this.chart.remove();
+
+                    this.chart = LightweightCharts.createChart(chartTarget, {
+                        width: chartTarget.clientWidth,
+                        height: chartTarget.clientHeight,
+                        layout: { background: { color: '#0a0a0a' }, textColor: '#cccccc' },
+                        grid: { vertLines: { color: '#333333' }, horzLines: { color: '#333333' }},
+                        crosshair: { mode: LightweightCharts.CrosshairMode.Normal },
+                        timeScale: { borderColor: '#333333', timeVisible: true, secondsVisible: false },
+                    });
+
+                    this.candlestickSeries = this.chart.addCandlestickSeries({
+                        upColor: '#00ff88', downColor: '#ff4444', borderDownColor: '#ff4444',
+                        borderUpColor: '#00ff88', wickDownColor: '#ff4444', wickUpColor: '#00ff88',
+                    });
+
+                    const volumeSeries = this.chart.addHistogramSeries({
+                        color: '#00ffff', priceFormat: { type: 'volume' }, priceScaleId: 'volume_scale',
+                    });
+                    this.chart.priceScale('volume_scale').applyOptions({ scaleMargins: { top: 0.8, bottom: 0 }});
+
+                    const ohlc = ohlcvData.data.map(d => ({ time: new Date(d.timestamp).getTime() / 1000, open: d.open, high: d.high, low: d.low, close: d.close })).sort((a, b) => a.time - b.time);
+                    const volume = ohlcvData.data.map(d => ({ time: new Date(d.timestamp).getTime() / 1000, value: d.volume, color: d.close >= d.open ? 'rgba(0, 255, 136, 0.5)' : 'rgba(255, 68, 68, 0.5)' })).sort((a, b) => a.time - b.time);
+                    
+                    this.candlestickSeries.setData(ohlc);
+                    volumeSeries.setData(volume);
+
+                    const calculateSMA = (data, period) => {
+                        const smaData = [];
+                        for (let i = period - 1; i < data.length; i++) {
+                            let sum = 0;
+                            for (let j = 0; j < period; j++) sum += data[i - j].close;
+                            smaData.push({ time: data[i].time, value: sum / period });
+                        }
+                        return smaData;
+                    };
+
+                    this.chart.addLineSeries({ color: 'rgba(255, 255, 0, 0.8)', lineWidth: 2, title: 'SMA(4)' }).setData(calculateSMA(ohlc, 4));
+                    this.chart.addLineSeries({ color: 'rgba(0, 255, 255, 0.8)', lineWidth: 2, title: 'SMA(9)' }).setData(calculateSMA(ohlc, 9));
+                    
+                    this.candlestickSeries.setMarkers(this.markers);
+                    this.chart.timeScale().fitContent();
+
+                } catch (error) {
+                    console.error('Error al mostrar el gráfico OHLCV de respaldo:', error);
+                    chartTarget.innerHTML = `<div class="error-message">No se pudieron cargar los datos del gráfico de respaldo.</div>`;
+                }
+            }
+            
+            async getTechnicalSignal() {
+                if (!this.currentToken || !this.currentNetwork) {
+                    this.showError('Primero busca un token para obtener señales técnicas');
+                    return;
+                }
+                this.showLoading('resultsContent', true);
+                try {
+                    const signalData = await this.apiRequest(`/signals/${this.currentNetwork}/${this.currentToken}`);
+                    this.displayTechnicalSignal(signalData);
+                } catch (error) {
+                    this.showError(`Error al obtener señal técnica: ${error.message}`);
+                }
+            }
+
+            displayTechnicalSignal(signalData) {
+                const signalClass = signalData.signal.toLowerCase() === 'compra' ? 'signal-buy' : signalData.signal.toLowerCase() === 'venta' ? 'signal-sell' : 'signal-hold';
+                
+                const fullSignalHTML = `
+                    <div class="prediction-card">
+                        <h3 class="prediction-title"><i class="fas fa-signal"></i> Señal Técnica</h3>
+                        <div class="prediction-grid">
+                            <div class="metric"><div class="metric-label">Señal</div><div class="metric-value ${signalClass}">${signalData.signal.toUpperCase()}</div></div>
+                            <div class="metric"><div class="metric-label">Precio Actual</div><div class="metric-value">$${this.formatNumber(signalData.price)}</div></div>
+                            <div class="metric"><div class="metric-label">Stop Loss</div><div class="metric-value">$${this.formatNumber(signalData.stop_loss)}</div></div>
+                            <div class="metric"><div class="metric-label">Take Profit</div><div class="metric-value">$${this.formatNumber(signalData.take_profit)}</div></div>
+                        </div>
+                        <div class="mt-2"><div class="metric-label">Razón:</div><div class="metric-value" style="font-size: 0.9rem;">${signalData.reason}</div></div>
+                    </div>
+                `;
+                
+                document.getElementById('resultsContent').insertAdjacentHTML('beforeend', fullSignalHTML);
+                document.getElementById('results').classList.remove('hidden');
+
+                if (this.chart && this.candlestickSeries) {
+                    let marker;
+                    const signalTime = new Date(signalData.timestamp).getTime() / 1000;
+                    if (signalData.signal.toLowerCase() === 'compra') {
+                        marker = { time: signalTime, position: 'belowBar', color: '#00ff88', shape: 'arrowUp', text: 'Compra @ ' + this.formatNumber(signalData.price) };
+                    } else if (signalData.signal.toLowerCase() === 'venta') {
+                        marker = { time: signalTime, position: 'aboveBar', color: '#ff4444', shape: 'arrowDown', text: 'Venta @ ' + this.formatNumber(signalData.price) };
+                    }
+                    if (marker) {
+                        this.markers.push(marker);
+                        this.candlestickSeries.setMarkers(this.markers);
+                    }
+                }
+            }
+            
+            async getPredictions() {
+                if (!this.currentToken || !this.currentNetwork) {
+                    this.showError('Primero busca un token para obtener predicciones');
+                    return;
+                }
+                this.showLoading('resultsContent', true);
+                try {
+                    const [xgboostData, montecarloData] = await Promise.all([
+                        this.apiRequest(`/predict/xgboost/${this.currentNetwork}/${this.currentToken}`).catch(e => e),
+                        this.apiRequest(`/predict/montecarlo/${this.currentNetwork}/${this.currentToken}`).catch(e => e)
+                    ]);
+                    this.displayPredictions(xgboostData instanceof Error ? null : xgboostData, montecarloData instanceof Error ? null : montecarloData);
+                } catch (error) {
+                    this.showError(`Error al obtener predicciones: ${error.message}`);
+                }
+            }
+
+            displayPredictions(xgboostData, montecarloData) {
+                let predictionsHTML = '<div class="prediction-card"><h3 class="prediction-title"><i class="fas fa-crystal-ball"></i> Predicciones de Precio</h3>';
+                
+                if (xgboostData) {
+                    const changePercent = ((xgboostData.predicted_price - xgboostData.current_price) / xgboostData.current_price * 100);
+                     predictionsHTML += `
+                        <div class="prediction-grid mb-2" style="margin-bottom: 1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 1rem;">
+                            <div class="metric"> <div class="metric-label">XGBoost - Actual</div> <div class="metric-value">$${this.formatNumber(xgboostData.current_price)}</div> </div>
+                            <div class="metric"> <div class="metric-label">XGBoost - Predicción</div> <div class="metric-value">$${this.formatNumber(xgboostData.predicted_price)}</div> </div>
+                            <div class="metric"> <div class="metric-label">Cambio Esperado</div> <div class="metric-value ${changePercent >= 0 ? 'positive' : 'negative'}"> ${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}% </div> </div>
+                        </div>
+                    `;
+                }
+
+                if (montecarloData) {
+                    const changePercent = ((montecarloData.predicted_price - montecarloData.current_price) / montecarloData.current_price * 100);
+                     predictionsHTML += `
+                        <div class="prediction-grid">
+                           <div class="metric"> <div class="metric-label">Monte Carlo - Actual</div> <div class="metric-value">$${this.formatNumber(montecarloData.current_price)}</div> </div>
+                           <div class="metric"> <div class="metric-label">Monte Carlo - Predicción</div> <div class="metric-value">$${this.formatNumber(montecarloData.predicted_price)}</div> </div>
+                           <div class="metric"> <div class="metric-label">Cambio Esperado</div> <div class="metric-value ${changePercent >= 0 ? 'positive' : 'negative'}"> ${changePercent >= 0 ? '+' : ''}${changePercent.toFixed(2)}% </div> </div>
+                        </div>
+                    `;
+                }
+                predictionsHTML += '</div>';
+
+                document.getElementById('resultsContent').insertAdjacentHTML('beforeend', predictionsHTML);
+                document.getElementById('results').classList.remove('hidden');
+            }
+
+            async getRiskAnalysis() {
+                 if (!this.currentToken || !this.currentNetwork) {
+                    this.showError('Primero busca un token para obtener análisis de riesgo');
+                    return;
+                }
+                this.showLoading('resultsContent', true);
+                try {
+                    const riskData = await this.apiRequest(`/analyze/risk/${this.currentNetwork}/${this.currentToken}`);
+                    this.displayRiskAnalysis(riskData);
+                } catch (error) {
+                    this.showError(`Error al obtener análisis de riesgo: ${error.message}`);
+                }
+            }
+
+            displayRiskAnalysis(riskData) {
+                const riskColor = riskData.risk_level === 'CRÍTICO' ? 'danger' : riskData.risk_level === 'ALTO' ? 'warning' : 'success';
+                const riskHTML = `
+                    <div class="prediction-card">
+                        <h3 class="prediction-title"><i class="fas fa-shield-alt"></i> Análisis de Riesgo</h3>
+                        <div class="prediction-grid">
+                            <div class="metric"> <div class="metric-label">Nivel de Riesgo</div> <div class="metric-value" style="color: var(--${riskColor})">${riskData.risk_level}</div> </div>
+                            <div class="metric"> <div class="metric-label">Puntuación</div> <div class="metric-value">${(riskData.risk_score * 100).toFixed(1)}%</div> </div>
+                        </div>
+                        <div class="mt-2">
+                            <div class="metric-label">Detalles del Riesgo:</div>
+                            ${Object.entries(riskData.details).map(([key, value]) => `<div class="metric-value" style="font-size: 0.9rem;"> ${key.replace(/_/g, ' ').toUpperCase()}: ${(value * 100).toFixed(1)}% </div>`).join('')}
+                        </div>
+                    </div>`;
+
+                document.getElementById('resultsContent').insertAdjacentHTML('beforeend', riskHTML);
+                document.getElementById('results').classList.remove('hidden');
+            }
+
+            async discoverGems() {
+                 this.showLoading();
+                try {
+                    const network = document.getElementById('network').value || 'ethereum';
+                    const gemsData = await this.apiRequest(`/discover/momentum_gems?chain=${network}&min_volume=10000&min_liquidity=5000&min_price_change=5.0`);
+                    this.displayGems(gemsData);
+                } catch (error) {
+                    this.showError(`Error al descubrir gemas: ${error.message}`);
+                }
+            }
+            
+            displayGems(gemsData) {
+                const resultsContent = document.getElementById('resultsContent');
+                
+                if (!gemsData || gemsData.length === 0) {
+                    resultsContent.innerHTML = '<div class="error-message">No se encontraron gemas en este momento para la red seleccionada.</div>';
+                    document.getElementById('results').classList.remove('hidden');
+                    return;
+                }
+
+                const gemsHTML = `
+                    <p class="text-center" style="color: var(--text-secondary); margin-bottom: 1rem;">Se encontraron las siguientes gemas. Haz clic en una tarjeta para analizarla en detalle.</p>
+                    <div class="token-grid">
+                        ${gemsData.slice(0, 12).map(gem => `
+                            <div class="token-card gem-card" onclick="app.analyzeGem('${gem.pair_address}', '${gem.chain}')" title="Analizar ${gem.symbol}">
+                                <div class="token-header">
+                                    <div class="token-symbol">${gem.symbol}</div>
+                                    <div class="token-chain">${gem.chain.toUpperCase()}</div>
+                                </div>
+                                <div class="token-metrics">
+                                    <div class="metric">
+                                        <div class="metric-label">Precio USD</div>
+                                        <div class="metric-value">$${this.formatNumber(gem.price_usd)}</div>
+                                    </div>
+                                    <div class="metric">
+                                        <div class="metric-label">Volumen 24h</div>
+                                        <div class="metric-value">$${this.formatNumber(gem.volume_24h)}</div>
+                                    </div>
+                                    <div class="metric">
+                                        <div class="metric-label">Cambio 24h</div>
+                                        <div class="metric-value ${gem.price_change_24h >= 0 ? 'positive' : 'negative'}">
+                                            ${gem.price_change_24h >= 0 ? '+' : ''}${gem.price_change_24h.toFixed(2)}%
+                                        </div>
+                                    </div>
+                                    <div class="metric">
+                                        <div class="metric-label">Liquidez</div>
+                                        <div class="metric-value">$${this.formatNumber(gem.liquidity_usd)}</div>
+                                    </div>
+                                    <div class="metric">
+                                        <div class="metric-label">Score</div>
+                                        <div class="metric-value">${gem.score.toFixed(2)}</div>
+                                    </div>
+                                    <div class="metric">
+                                        <div class="metric-label">DEX</div>
+                                        <div class="metric-value">${gem.dex || 'N/A'}</div>
+                                    </div>
+                                </div>
+                                <div class="mt-2">
+                                    <div class="metric-label">Dirección del Par:</div>
+                                    <div class="metric-value" style="font-size: 0.7rem; word-break: break-all; display: flex; align-items: center; justify-content: center;">
+                                        <span>${gem.pair_address}</span>
+                                        <button class="copy-btn" data-address="${gem.pair_address}" onclick="event.stopPropagation(); copyAddress(this, '${gem.pair_address}')" title="Copiar dirección">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+
+                resultsContent.innerHTML = gemsHTML;
+                document.getElementById('results').classList.remove('hidden');
+                document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            analyzeGem(address, chain) {
+                document.getElementById('tokenAddress').value = address;
+                document.getElementById('network').value = chain;
+
+                const searchSection = document.getElementById('search');
+                searchSection.scrollIntoView({ behavior: 'smooth' });
+                
+                setTimeout(() => {
+                    this.handleSearch();
+                }, 300);
+            }
+
+            showLoading(elementId = 'resultsContent', append = false) {
+                const contentArea = document.getElementById(elementId);
+                const loadingHTML = `<div class="loading"><div class="spinner"></div></div>`;
+                if (append) {
+                    const existingSpinners = contentArea.querySelectorAll('.loading');
+                    existingSpinners.forEach(spinner => spinner.remove());
+                    contentArea.insertAdjacentHTML('beforeend', loadingHTML);
+                } else {
+                    contentArea.innerHTML = loadingHTML;
+                }
+                document.getElementById('results').classList.remove('hidden');
+                if (!append) document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            showError(message) {
+                const resultsContent = document.getElementById('resultsContent');
+                resultsContent.innerHTML = `<div class="error-message"><i class="fas fa-exclamation-triangle"></i> ${message}</div>`;
+                document.getElementById('results').classList.remove('hidden');
+            }
+
+            showSuccess(message) {
+                const resultsContent = document.getElementById('resultsContent');
+                resultsContent.innerHTML = `<div class="success-message"><i class="fas fa-check-circle"></i> ${message}</div>`;
+                document.getElementById('results').classList.remove('hidden');
+            }
+
+            formatNumber(num) {
+                if (num === null || num === undefined || isNaN(num)) return '0';
+                if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+                if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+                if (num >= 1e3) return (num / 1e3).toFixed(2) + 'K';
+                if (num < 1 && num > 0) return num.toFixed(8);
+                return num.toFixed(2);
+            }
+        }
+
+        function copyAddress(button, address) {
+            const addr = address || (button?.dataset?.address) || (button?.closest('[style*="word-break"]')?.querySelector('span')?.textContent?.trim());
+            if (!addr) return;
+            const doVisualFeedback = (btn) => {
+                if(!btn) return;
+                const icon = btn.querySelector('i');
+                const originalIcon = icon ? icon.className : null;
+                btn.style.color = 'var(--success)';
+                if(icon) icon.className = 'fas fa-check';
+                setTimeout(() => {
+                    btn.style.color = '';
+                    if(icon && originalIcon) icon.className = originalIcon;
+                }, 2000);
+            };
+            const fallbackCopy = (text) => {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                document.body.removeChild(ta);
+            };
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(addr).then(() => doVisualFeedback(button)).catch(() => { fallbackCopy(addr); doVisualFeedback(button); });
+            } else {
+                fallbackCopy(addr);
+                doVisualFeedback(button);
+            }
+        }
+
+        let app;
+        function getTechnicalSignal() { if (app) app.getTechnicalSignal(); }
+        function getPredictions() { if (app) app.getPredictions(); }
+        function getRiskAnalysis() { if (app) app.getRiskAnalysis(); }
+        function discoverGems() { if (app) app.discoverGems(); }
+
+        document.addEventListener('click', (e) => {
+            const btn = e.target.closest('.copy-btn');
+            if (btn) {
+                e.stopPropagation();
+                const address = btn.dataset.address || btn.getAttribute('data-address');
+                if (address) copyAddress(btn, address);
+                else {
+                    const span = btn.closest('[style*="word-break"]')?.querySelector('span');
+                    if (span) copyAddress(btn, span.textContent.trim());
+                }
+            }
+        });
+
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (href === '#discover') {
+                    const discoverBtn = document.getElementById('discover-btn') || document.querySelector('button[onclick="discoverGems()"]');
+                    if (discoverBtn) setTimeout(() => discoverBtn.click(), 200);
+                }
+                if (href === '#predict') {
+                    const predictBtn = document.getElementById('predict-btn') || document.querySelector('button[onclick="getPredictions()"]');
+                    if (predictBtn) setTimeout(() => predictBtn.click(), 200);
+                }
+            });
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                // Si no hay token, redirige a la página de login
+                window.location.href = '/login';
+            } else {
+                // Si hay un token, inicializa la aplicación
+                app = new LukaCryptoApp();
+            }
+        });
+    </script>
+</body>
+</html>
+

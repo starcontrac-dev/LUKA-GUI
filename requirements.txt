@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+gunicorn
+python-multipart
+jinja2
+pandas
+scikit-learn
+xgboost
+numpy
+requests
+aiohttp
+python-dotenv

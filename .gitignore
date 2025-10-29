@@ -1,0 +1,35 @@
+# Entornos virtuales
+.env
+venv/
+*.venv
+
+# Archivos de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Archivos de configuración de IDEs
+.vscode/
+.idea/
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de Gemini y Genkit
+.gemini/
+.genkit/
+
+# Archivos de documentación y planificación interna
+mejoras.md
+pal.md
+plan.md
+seguridad.md
+tuto.txt
+
+# Otros
+users.json
+MEMORIA/
+models/
+Screenshot_*.png
